@@ -1,4 +1,5 @@
 import NewsImage from "./components/NewsImage";
+import Image from "next/image";
 import axios, { AxiosError } from "axios";
 
 interface Source {
@@ -95,7 +96,7 @@ export default async function Home({
 }: {
   searchParams: { category?: string };
 }) {
-  const category = (await searchParams).category || "cryptocurrency";
+  const category = searchParams.category || "cryptocurrency";
   const news = await getNews(category);
   console.log("News articles:", news);
 
@@ -188,10 +189,12 @@ export default async function Home({
       {news.length === 0 && (
         <div className="flex min-h-[400px] items-center justify-center">
           <div className="text-center">
-            <img
+            <Image
               src="/globe.svg"
               alt="No news"
-              className="mx-auto mb-6 h-20 w-20 opacity-40"
+              width={80}
+              height={80}
+              className="mx-auto mb-6 opacity-40"
             />
             <h2 className="mb-3 text-2xl font-semibold">No news available</h2>
             <p className="text-[var(--muted)]">

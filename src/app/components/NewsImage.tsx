@@ -31,12 +31,14 @@ export default function NewsImage({
   }
 
   return (
-    <img
+    <Image
       src={src}
       alt={alt}
+      width={800}
+      height={450}
       className="h-full w-full object-cover"
       onError={() => setError(true)}
-      loading={priority ? "eager" : "lazy"}
+      priority={priority}
     />
   );
 }
