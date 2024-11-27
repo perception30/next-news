@@ -1,5 +1,5 @@
 import NewsImage from "./components/NewsImage";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 interface Source {
   id: string | null;
@@ -18,6 +18,7 @@ interface NewsArticle {
 }
 
 const categories = [
+  "cryptocurrency",
   "general",
   "business",
   "technology",
@@ -27,23 +28,54 @@ const categories = [
   "health",
 ];
 
-async function getNews(category: string = "general") {
+async function getNews(category: string = "cryptocurrency") {
   try {
-    const config = {
+    const baseConfig = {
       params: {
         apiKey: process.env.NEXT_PUBLIC_NEWS_API_KEY,
         pageSize: 50,
         language: "en",
-        category,
       },
     };
-    console.log("API Key being used:", process.env.NEXT_PUBLIC_NEWS_API_KEY);
-    console.log("Request config:", config);
-    
-    const response = await axios.get("https://newsapi.org/v2/top-headlines", config);
+
+    let response;
+    if (category === "cryptocurrency") {
+      const config = {
+        ...baseConfig,
+        params: {
+          ...baseConfig.params,
+          q: "cryptocurrency OR bitcoin OR crypto",
+          sortBy: "publishedAt",
+        },
+      };
+      console.log("Crypto news config:", config);
+      response = await axios.get("https://newsapi.org/v2/everything", config);
+    } else {
+      const config = {
+        ...baseConfig,
+        params: {
+          ...baseConfig.params,
+          category,
+        },
+      };
+      console.log("Regular news config:", config);
+      response = await axios.get(
+        "https://newsapi.org/v2/top-headlines",
+        config
+      );
+    }
+
+    console.log("API Response:", response.data);
     return response.data.articles as NewsArticle[];
-  } catch (error: any) {
-    console.error("Error fetching news:", error.response?.data || error.message);
+  } catch (error: unknown) {
+    if (error instanceof AxiosError) {
+      console.error(
+        "Error fetching news:",
+        error.response?.data || error.message
+      );
+    } else {
+      console.error("Error fetching news:", error);
+    }
     return [] as NewsArticle[];
   }
 }
@@ -63,14 +95,17 @@ export default async function Home({
 }: {
   searchParams: { category?: string };
 }) {
-  const category = (await searchParams).category || "general";
+  const category = (await searchParams).category || "cryptocurrency";
   const news = await getNews(category);
+  console.log("News articles:", news);
 
   return (
     <main className="min-h-screen max-w-[1200px] mx-auto px-4 py-8 md:px-6 lg:px-8">
       <header className="mb-12 text-center max-w-3xl mx-auto">
         <h1 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl bg-clip-text">
-          World News <span className="text-[var(--accent)] relative">Today
+          World News{" "}
+          <span className="text-[var(--accent)] relative">
+            Today
             <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-[var(--accent)]/30"></span>
           </span>
         </h1>
